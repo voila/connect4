@@ -51,9 +51,49 @@ Javascript will manage the turn taking
 The wasm side will
 
 * store the board state (take inspiration from game of life in rust-wasm book)
-* validate a move, 
-* update the board after a move, 
-* display a board
+
+```
+pub enum Cell {
+    Yellow,
+    Red,
+    Empty,
+}
+
+#[wasm_bindgen]
+pub struct Board {
+    width: u8,
+    height: u8,
+    cells: Vec<Cell>,
+}
+```
+
+* validate a move 
+
+```
+type Move = usize;
+
+[...]
+
+fn valid_moves(&self) -> Vec<Move> {
+        let mut moves = Vec::new();
+        for col in (0..self.width).into_iter() {
+            for row in (0..self.height).into_iter().rev() {
+                let idx = self.get_index(row, col);
+                if self.cells[idx] == Cell::Empty {
+                    moves.push(idx);
+                    break;
+                }
+            }
+        }
+        moves
+    }
+```
+
+* update the board after a move
+pub fn play(&mut self, cell: Cell, index: usize) {
+        self.cells[index] = cell
+    }
+
 * decide whether the game is won or drawn
 
 
