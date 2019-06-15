@@ -1,18 +1,18 @@
-import { Board, Cell, Move } from "connect4";
+import { Board, Cell, Result } from "connect4";
 import { memory } from "connect4/connect4_bg";
 
 const CELL_SIZE = 60; // px
 const GRID_COLOR = "#0000AA";
 const RED_COLOR = "#FF0000";
 const YELLOW_COLOR = "#FFFF00";
-const EMPTY_COLOR = "#0000FF";
+const EMPTY_COLOR = "#00F0FF";
 
 // Construct the board
 const board = Board.new();
 const width = board.width();
 const height = board.height();
 
-const msg = document.getElementById("msg");
+const message = document.getElementById("message");
 // Give the canvas room for all of our cells and a 1px border
 // around each of them.
 const canvas = document.getElementById("canvas");
@@ -32,8 +32,6 @@ const getIndex = (row, column) => {
 const drawCells = () => {
   const cellsPtr = board.cells();
   const cells = new Uint8Array(memory.buffer, cellsPtr, width * height);
-
-
   for (let row = 0; row < height; row++) {
     for (let col = 0; col < width; col++) {
       const idx = getIndex(row, col);
@@ -53,12 +51,11 @@ const drawCells = () => {
   }
 }
 
-
 function getCursorPosition(canvas, event) {
   var rect = canvas.getBoundingClientRect();
   var x = event.clientX - rect.left;
   var y = event.clientY - rect.top;
-  console.log("x: " + x + " y: " + y);
+  //console.log("x: " + x + " y: " + y);
   return [x, y];
 }
 
@@ -66,8 +63,8 @@ const showPlayer = () => {
   return player === Cell.Yellow ? "Yellow" : "Red";
 }
 
-const render = () => {
-  msg.innerHTML = showPlayer() + " turn to play";
+const render = (s) => {
+  message.innerHTML = s;
   drawGrid();
   drawCells();
 };
@@ -76,31 +73,40 @@ const swapPlayer = (p) => {
   return p === Cell.Yellow ? Cell.Red : Cell.Yellow;
 }
 
-
 const handleClick = (e) => {
   let [x, y] = getCursorPosition(canvas, e);
   // here translate x,y to a cell 
   let row = Math.floor(y / CELL_SIZE);
   let column = Math.floor(x / CELL_SIZE);
-  let idx = (row * width + column);
-  // send move
-  let move = board.play(player, idx);
-  if (move == Move.Ok) {
-    // render the board + cells
-    render();
-    // is game finished? announce winner, deregister click handler
-
-    // if not let the other play
-    player = swapPlayer(player);
+  // play move
+  let msg;
+  let res = board.play(player, row, column);
+  switch (res) {
+    case Result.Win:
+      // is game finished? announce winner, deregister click handler
+      msg = showPlayer() + " has won!";
+      canvas.onclick = null;
+      break;
+    case Result.Draw:
+      msg = "It is a draw!";
+      canvas.onclick = null;
+      break;
+    case Result.Unfinished:
+      //console.log('unfinished')
+      // if not let the other play
+      player = swapPlayer(player);
+      msg = showPlayer() + " turn to play";
+      break;
+    case Result.InvalidMove:
+      msg = 'Invalid move';
+      break;
   }
-  else {
-    console.log('Invalid move')
-  }
-
-
+  // draw cells
+  render(msg);
 }
 
 // Start the game
-let player = Cell.Yellow;
+let player = Cell.Yellow; // player is global !!!
 canvas.onclick = (e) => handleClick(e);
-render();
+let msg = showPlayer() + " turn to play";
+render(msg);
