@@ -1,5 +1,7 @@
+
 ### Setup
 
+```
 $ cargo generate --git https://github.com/rustwasm/wasm-pack-template
 🤷  Project Name: connect4
 🔧   Creating project called `connect4`...
@@ -26,13 +28,19 @@ $ wasm-pack build
 $ npm init wasm-app www
 npx: installed 1 in 3.044s
 🦀 Rust + 🕸 Wasm = ❤
+```
 
 edit www/package.json
 
+```
 "dependencies": {
     "connect4": "file:../pkg"
   },
+```
 
+install the connect4 pkg and start the web server
+
+```
 $ npm install
 added 1 package and audited 8970 packages in 5.231s
 found 0 vulnerabilities
@@ -43,6 +51,7 @@ $ npm run start
 > webpack-dev-server
 
 Project is running at http://localhost:8080/  
+```
 
 ### Developing the game
 
@@ -90,11 +99,29 @@ fn valid_moves(&self) -> Vec<Move> {
 ```
 
 * update the board after a move
+
+```
 pub fn play(&mut self, cell: Cell, index: usize) {
         self.cells[index] = cell
     }
+```
 
 * decide whether the game is won or drawn
 
+```
+fn game_status(&self, row: i8, col: i8, moves: Vec<usize>) -> Result {
+        if self.four_v(row, col)
+            || self.four_h(row, col)
+            || self.four_dl(row, col)
+            || self.four_dr(row, col)
+        {
+            Result::Win
+        } else if moves.len() == 0 {
+            Result::Draw
+        } else {
+            Result::Unfinished
+        }
+    }
+```
 
-### One-player and Minimax 
+### One-player and Minimax
